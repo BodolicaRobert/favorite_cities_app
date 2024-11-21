@@ -4,11 +4,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const { data: session } = useSession();
-  let username = "";
-
-  if (session) {
-    username = session.user.name;
-  }
+  
   return (
     <Box bg="teal.500" p={4}>
       <Flex justify="space-between" gap={2}>
@@ -105,7 +101,7 @@ export default function Navbar() {
               fontWeight={600}
               color={"white"}
               bg={"pink.400"}
-              href={"#"}
+              href={"/register"}
               px={4}
               _hover={{
                 bg: "pink.300",
