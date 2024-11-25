@@ -1,11 +1,18 @@
 import "@/styles/globals.css";
-import { Provider } from "@/components/ui/provider"
+import { Provider } from "@/components/ui/provider";
 import Navbar from "@/components/Navbar";
-export default function App({ Component, pageProps }) {
+import { SessionProvider } from "next-auth/react";
+
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
   return (
-    <Provider>
-      <Navbar/>
-      <Component {...pageProps} />
-    </Provider>
-  )
+    <SessionProvider session={session}>
+      <Provider>
+        <Navbar />
+        <Component {...pageProps} />
+      </Provider>
+    </SessionProvider>
+  );
 }
