@@ -1,5 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+## Environment Variables
 
+To run this project, you need to add the following environment variable to your `.env.local` file:
+Replace `your-google-maps-api-key` with a valid Google Maps API key: GOOGLE_MAPS_API_KEY=yourKey
 ## Getting Started
 
 First, run the development server:
