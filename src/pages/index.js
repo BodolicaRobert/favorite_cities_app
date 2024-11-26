@@ -12,6 +12,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -19,8 +20,57 @@ export default function Home() {
   const [randomCities, setRandomCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [location, setLocation] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
   const router = useRouter();
 
+  
+  
+  const handleLocation = async () => {
+    setMapLoading(true);
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    try {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("Detected location:", latitude, longitude);
+          setLocation({ latitude, longitude });
+          setMapLoading(false);
+        },
+        async (error) => {
+          console.warn(
+            "Failed to get location. Falling back to IP-based location.",
+            error
+          );
+
+          // Fallback: Aproximăm locația pe baza IP-ului
+          try {
+            const ipResponse = await fetch(
+              "https://ipinfo.io/json?token=147a5b6df07e0a"
+            );
+            const ipData = await ipResponse.json();
+            console.log(" data from ip:", ipData);
+            const [latitude, longitude] = ipData.loc.split(",");
+            console.log("IP-based location:", latitude, longitude);
+            setLocation({
+              latitude: parseFloat(latitude),
+              longitude: parseFloat(longitude),
+            });
+          } catch (ipError) {
+            console.error("Failed to fetch IP-based location:", ipError);
+          } finally {
+            setMapLoading(false);
+          }
+        }
+      );
+    } catch (err) {
+      console.error("Unexpected error while detecting location:", err);
+    }
+  };
   // Functia pentru a naviga catre pagina de cautare
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -88,12 +138,20 @@ export default function Home() {
     }
 
     setLoading(false);
+   
   }, [session]);
 
   return (
     <Box p={5}>
       <Flex direction="row">
-        <Box flex="1">
+        <Box
+          flex="1"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          textAlign="center"
+        >
           <Text fontSize="2xl" fontWeight="bold">
             Welcome to Favorite Cities
           </Text>
@@ -103,6 +161,22 @@ export default function Home() {
           ) : (
             <Text mt={2}>You are not signed in!</Text>
           )}
+          <Button
+            onClick={handleLocation}
+            fontSize={"md"}
+            width="40%"
+            mt={2}
+            fontWeight={600}
+            color={"white"}
+            bg={"teal.400"}
+            isLoading={mapLoading}
+            size="sm"
+            _hover={{
+              bg: "teal.300",
+            }}
+          >
+            Detect Location
+          </Button>
         </Box>
 
         {/* Câmpul de căutare */}
@@ -142,7 +216,28 @@ export default function Home() {
           </Button>
         </Box>
       </Flex>
-      <Flex>
+      <Box mt={6}>
+        {location && (
+          <LoadScript googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY}>
+            <GoogleMap
+              mapContainerStyle={{ height: "400px", width: "100%" }}
+              center={{ lat: location.latitude, lng: location.longitude }}
+              zoom={13}
+            >
+              <Marker
+                position={{
+                  lat: location.latitude,
+                  lng: location.longitude,
+                }}
+              />
+            </GoogleMap>
+          </LoadScript>
+        )}
+      </Box>
+      <Flex
+        direction={session ? "row" : "column"}
+        justifyContent={session ? "flex-start" : "center"}
+      >
         <Box
           flex="2"
           display="flex"
@@ -233,6 +328,8 @@ export default function Home() {
           </Box>
         </Box>
       </Flex>
+       {/* Afișăm harta Google Maps */}
+       
     </Box>
   );
 }
